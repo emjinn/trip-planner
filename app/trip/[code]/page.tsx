@@ -86,7 +86,7 @@ export default function TripPage() {
 
   async function handleAddItem(item: { type: ItemType; name: string; notes: string; link: string; added_by: string }) {
     if (!trip) return
-    const { error } = await supabase.from('items').insert({
+    const { data, error } = await supabase.from('items').insert({
       trip_id: trip.id,
       type: item.type,
       name: item.name,
@@ -94,8 +94,9 @@ export default function TripPage() {
       link: item.link || null,
       added_by: item.added_by,
       done: false,
-    })
+    }).select().single()
     if (error) throw error
+    if (data) setItems(prev => prev.some(i => i.id === data.id) ? prev : [data, ...prev])
   }
 
   async function handleToggleDone(id: string, done: boolean) {

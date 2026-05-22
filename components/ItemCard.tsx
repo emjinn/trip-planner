@@ -210,7 +210,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
                 <p className="text-stone-500 text-sm mt-0.5 leading-snug line-clamp-2">{item.notes}</p>
               )}
               {(item.links?.length > 0 || item.added_by) && (
-                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                <div className="flex items-start gap-1.5 mt-1.5 flex-wrap">
                   <span className="text-stone-400 text-xs">{item.added_by}</span>
                   {item.links?.map((link, i) => {
                     const platform = getPlatform(link)
@@ -221,7 +221,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${platform.chipClass}`}
+                        className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium touch-manipulation active:opacity-75 transition-opacity ${platform.chipClass}`}
                       >
                         <platform.Icon />
                         {platform.label}

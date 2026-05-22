@@ -1,6 +1,8 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Item, ItemType } from '@/types'
 
 const TYPE_CONFIG: Record<ItemType, { emoji: string; bg: string }> = {
@@ -35,6 +37,8 @@ function TrashIcon() {
 }
 
 export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+
   const [dragX, setDragX] = useState(0)
   const [snapX, setSnapX] = useState(0)
 
@@ -59,6 +63,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
   }
 
   function handleTouchMove(e: React.TouchEvent) {
+    if (isDragging) return
     if (startX.current === null || startY.current === null) return
     const dx = e.touches[0].clientX - startX.current
     const dy = e.touches[0].clientY - startY.current
@@ -75,6 +80,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
   }
 
   function handleTouchEnd() {
+    if (isDragging) { gestureDir.current = null; return }
     if (gestureDir.current !== 'h') {
       gestureDir.current = null
       return
@@ -105,7 +111,13 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
   const showTrashRight = translateX < -HALF / 2  // card swiped left → trash on right
 
   return (
-    <div className="relative overflow-hidden rounded-2xl shadow-sm">
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      {...attributes}
+      {...listeners}
+    >
+    <div className={`relative overflow-hidden rounded-2xl ${isDragging ? 'shadow-xl' : 'shadow-sm'}`}>
       {/* Red background */}
       <div className="absolute inset-0 rounded-2xl bg-red-500 flex items-center">
         {showTrashLeft && (
@@ -177,6 +189,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
         </div>
 
       </div>
+    </div>
     </div>
   )
 }

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { DndContext, closestCenter, TouchSensor, MouseSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { supabase } from '@/lib/supabase'
 import { Trip, Item, ItemType } from '@/types'
 import ItemCard from '@/components/ItemCard'
@@ -23,6 +25,11 @@ const EMPTY_EMOJI: Record<Filter, string> = {
 export default function TripPage() {
   const { code } = useParams<{ code: string }>()
   const router = useRouter()
+
+  const sensors = useSensors(
+    useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+  )
 
   const [trip, setTrip] = useState<Trip | null>(null)
   const [items, setItems] = useState<Item[]>([])
@@ -53,6 +60,7 @@ export default function TripPage() {
         .from('items')
         .select('*')
         .eq('trip_id', tripData.id)
+        .order('done', { ascending: true })
         .order('created_at', { ascending: false })
 
       setItems(itemsData ?? [])
@@ -100,8 +108,27 @@ export default function TripPage() {
   }
 
   async function handleToggleDone(id: string, done: boolean) {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, done } : i))
+    setItems(prev => {
+      const item = { ...prev.find(i => i.id === id)!, done }
+      const without = prev.filter(i => i.id !== id)
+      if (done) {
+        return [...without, item]
+      }
+      const firstDoneIdx = without.findIndex(i => i.done)
+      return firstDoneIdx === -1
+        ? [...without, item]
+        : [...without.slice(0, firstDoneIdx), item, ...without.slice(firstDoneIdx)]
+    })
     await supabase.from('items').update({ done }).eq('id', id)
+  }
+
+  function handleDragEnd({ active, over }: DragEndEvent) {
+    if (!over || active.id === over.id) return
+    setItems(prev => {
+      const oldIndex = prev.findIndex(i => i.id === active.id)
+      const newIndex = prev.findIndex(i => i.id === over.id)
+      return arrayMove(prev, oldIndex, newIndex)
+    })
   }
 
   async function handleDelete(id: string) {
@@ -115,8 +142,7 @@ export default function TripPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const filteredItems = (filter === 'all' ? items : items.filter(i => i.type === filter))
-    .sort((a, b) => Number(a.done) - Number(b.done))
+  const filteredItems = filter === 'all' ? items : items.filter(i => i.type === filter)
   const doneCount = items.filter(i => i.done).length
   const allDone = items.length > 0 && doneCount === items.length
 
@@ -193,14 +219,18 @@ export default function TripPage() {
             )}
           </div>
         ) : (
-          filteredItems.map(item => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onToggleDone={handleToggleDone}
-              onDelete={handleDelete}
-            />
-          ))
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filteredItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              {filteredItems.map(item => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onToggleDone={handleToggleDone}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

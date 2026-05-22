@@ -92,14 +92,14 @@ export default function TripPage() {
     return () => { supabase.removeChannel(channel) }
   }, [trip])
 
-  async function handleAddItem(item: { type: ItemType; name: string; notes: string; link: string; added_by: string }) {
+  async function handleAddItem(item: { type: ItemType; name: string; notes: string; links: string[]; added_by: string }) {
     if (!trip) return
     const { data, error } = await supabase.from('items').insert({
       trip_id: trip.id,
       type: item.type,
       name: item.name,
       notes: item.notes || null,
-      link: item.link || null,
+      links: item.links,
       added_by: item.added_by,
       done: false,
     }).select().single()

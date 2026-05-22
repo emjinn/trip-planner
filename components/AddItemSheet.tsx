@@ -14,14 +14,14 @@ const USER_NAME_KEY = 'trip_user_name'
 interface Props {
   isOpen: boolean
   onClose: () => void
-  onAdd: (item: { type: ItemType; name: string; notes: string; link: string; added_by: string }) => Promise<void>
+  onAdd: (item: { type: ItemType; name: string; notes: string; links: string[]; added_by: string }) => Promise<void>
 }
 
 export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
   const [type, setType] = useState<ItemType>('food')
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
-  const [link, setLink] = useState('')
+  const [links, setLinks] = useState<string[]>([''])
   const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -52,10 +52,7 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
   }
 
   function handleTouchEnd() {
-    if (dragY > 100) {
-      onClose()
-      reset()
-    }
+    if (dragY > 100) { onClose(); reset() }
     setDragY(0)
     dragging.current = false
     dragStartY.current = null
@@ -65,8 +62,16 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
     setType('food')
     setName('')
     setNotes('')
-    setLink('')
+    setLinks([''])
     setError('')
+  }
+
+  function updateLink(i: number, val: string) {
+    setLinks(l => l.map((v, idx) => idx === i ? val : v))
+  }
+
+  function removeLink(i: number) {
+    setLinks(l => l.filter((_, idx) => idx !== i))
   }
 
   async function handleSubmit() {
@@ -76,7 +81,8 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
     setError('')
     localStorage.setItem(USER_NAME_KEY, userName.trim())
     try {
-      await onAdd({ type, name: name.trim(), notes: notes.trim(), link: link.trim(), added_by: userName.trim() })
+      const cleanLinks = links.map(l => l.trim()).filter(Boolean)
+      await onAdd({ type, name: name.trim(), notes: notes.trim(), links: cleanLinks, added_by: userName.trim() })
       reset()
       onClose()
     } catch {
@@ -86,11 +92,11 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
     }
   }
 
+  const inputClass = "w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
+
   return (
     <>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
-      )}
+      {isOpen && <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />}
 
       <div
         className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl"
@@ -141,7 +147,7 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="e.g. Broken Mouth"
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
+                className={inputClass}
               />
             </div>
 
@@ -152,19 +158,43 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Neighborhood, hours, any details..."
                 rows={2}
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base resize-none"
+                className={`${inputClass} resize-none`}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">Link</label>
-              <input
-                type="url"
-                value={link}
-                onChange={e => setLink(e.target.value)}
-                placeholder="Paste TikTok, Maps, Yelp link..."
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
-              />
+              <label className="block text-sm font-medium text-stone-700 mb-1.5">Links</label>
+              <div className="space-y-2">
+                {links.map((link, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      value={link}
+                      onChange={e => updateLink(i, e.target.value)}
+                      placeholder="Paste TikTok, Maps, Yelp link..."
+                      className={`${inputClass} flex-1`}
+                    />
+                    {links.length > 1 && (
+                      <button
+                        onClick={() => removeLink(i)}
+                        className="text-stone-400 hover:text-stone-600 p-1 flex-shrink-0"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {links.length < 5 && (
+                  <button
+                    onClick={() => setLinks(l => [...l, ''])}
+                    className="text-sm text-orange-500 font-medium hover:text-orange-600 transition-colors"
+                  >
+                    + Add another link
+                  </button>
+                )}
+              </div>
             </div>
 
             <div>
@@ -176,7 +206,7 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
                 value={userName}
                 onChange={e => setUserName(e.target.value)}
                 placeholder="e.g. Emily"
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
+                className={inputClass}
               />
             </div>
           </div>

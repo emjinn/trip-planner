@@ -13,7 +13,7 @@ export interface Item {
   type: ItemType
   name: string
   notes: string | null
-  link: string | null
+  links: string[]
   added_by: string
   done: boolean
   created_at: string

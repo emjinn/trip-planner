@@ -13,7 +13,7 @@ create table items (
   type text not null check (type in ('food', 'activity', 'shop')),
   name text not null,
   notes text,
-  link text,
+  links text[] not null default '{}',
   added_by text not null,
   done boolean not null default false,
   created_at timestamptz not null default now()

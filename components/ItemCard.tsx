@@ -10,59 +10,53 @@ const TYPE_CONFIG: Record<ItemType, { emoji: string; bg: string }> = {
   shop:     { emoji: '🛍️', bg: 'bg-purple-100' },
 }
 
-type PlatformInfo = { label: string; chipClass: string; Icon: () => React.ReactElement }
+type PlatformInfo = { label: string; Icon: () => React.ReactElement }
 
 function getPlatform(url: string): PlatformInfo {
   if (url.includes('tiktok.com')) return {
     label: 'TikTok',
-    chipClass: 'bg-stone-900 text-white',
     Icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.97a8.27 8.27 0 004.84 1.55V7.07a4.85 4.85 0 01-3.07-.38z" />
       </svg>
     ),
   }
   if (url.includes('instagram.com')) return {
     label: 'Instagram',
-    chipClass: 'bg-pink-100 text-pink-700',
     Icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
       </svg>
     ),
   }
   if (url.includes('maps.google') || url.includes('goo.gl/maps') || url.includes('maps.app.goo')) return {
     label: 'Maps',
-    chipClass: 'bg-emerald-100 text-emerald-700',
     Icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" />
       </svg>
     ),
   }
   if (url.includes('yelp.com')) return {
     label: 'Yelp',
-    chipClass: 'bg-red-100 text-red-700',
     Icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
       </svg>
     ),
   }
   if (url.includes('youtube.com') || url.includes('youtu.be')) return {
     label: 'YouTube',
-    chipClass: 'bg-red-100 text-red-600',
     Icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.5V8.5l6.5 3.5-6.5 3.5z" />
       </svg>
     ),
   }
   return {
     label: 'Link',
-    chipClass: 'bg-stone-100 text-stone-600',
     Icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
       </svg>
     ),
@@ -221,7 +215,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium touch-manipulation active:opacity-75 transition-opacity ${platform.chipClass}`}
+                        className="flex items-center gap-1 text-xs bg-stone-100 text-stone-600 hover:bg-stone-200 active:bg-stone-300 px-2 py-0.5 rounded-full touch-manipulation transition-colors"
                       >
                         <platform.Icon />
                         {platform.label}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ItemType } from '@/types'
+import { Item, ItemType } from '@/types'
 
 const TYPE_OPTIONS: { type: ItemType; emoji: string; label: string }[] = [
   { type: 'food',     emoji: '🍜', label: 'Food' },
@@ -11,13 +11,17 @@ const TYPE_OPTIONS: { type: ItemType; emoji: string; label: string }[] = [
 
 const USER_NAME_KEY = 'trip_user_name'
 
+type ItemPayload = { type: ItemType; name: string; notes: string; links: string[]; added_by: string }
+
 interface Props {
   isOpen: boolean
   onClose: () => void
-  onAdd: (item: { type: ItemType; name: string; notes: string; links: string[]; added_by: string }) => Promise<void>
+  onAdd: (item: ItemPayload) => Promise<void>
+  editItem?: Item
+  onSave?: (id: string, updates: ItemPayload) => Promise<void>
 }
 
-export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
+export default function AddItemSheet({ isOpen, onClose, onAdd, editItem, onSave }: Props) {
   const [type, setType] = useState<ItemType>('food')
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
@@ -35,8 +39,17 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
   }, [])
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : ''
-    if (!isOpen) setDragY(0)
+    if (!isOpen) { setDragY(0); document.body.style.overflow = ''; return }
+    document.body.style.overflow = 'hidden'
+    if (editItem) {
+      setType(editItem.type)
+      setName(editItem.name)
+      setNotes(editItem.notes ?? '')
+      setLinks(editItem.links.length > 0 ? editItem.links : [''])
+      setUserName(editItem.added_by)
+    } else {
+      reset()
+    }
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
@@ -79,14 +92,19 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
     if (!userName.trim()) { setError('Your name is required.'); return }
     setLoading(true)
     setError('')
-    localStorage.setItem(USER_NAME_KEY, userName.trim())
+    const cleanLinks = links.map(l => l.trim()).filter(Boolean)
+    const payload = { type, name: name.trim(), notes: notes.trim(), links: cleanLinks, added_by: userName.trim() }
     try {
-      const cleanLinks = links.map(l => l.trim()).filter(Boolean)
-      await onAdd({ type, name: name.trim(), notes: notes.trim(), links: cleanLinks, added_by: userName.trim() })
+      if (editItem && onSave) {
+        await onSave(editItem.id, payload)
+      } else {
+        localStorage.setItem(USER_NAME_KEY, userName.trim())
+        await onAdd(payload)
+      }
       reset()
       onClose()
     } catch {
-      setError('Failed to add. Try again.')
+      setError('Failed to save. Try again.')
     } finally {
       setLoading(false)
     }
@@ -117,7 +135,7 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
         </div>
 
         <div className="px-5 pb-10 pt-2">
-          <h2 className="text-xl font-bold text-stone-900 mb-5">Add to your list</h2>
+          <h2 className="text-xl font-bold text-stone-900 mb-5">{editItem ? 'Edit item' : 'Add to your list'}</h2>
 
           {/* Type selector */}
           <div className="flex gap-2 mb-5">
@@ -218,7 +236,7 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
             disabled={loading}
             className="w-full mt-6 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold py-4 rounded-2xl transition-colors text-base"
           >
-            {loading ? 'Adding...' : 'Add to list'}
+            {loading ? (editItem ? 'Saving...' : 'Adding...') : (editItem ? 'Save' : 'Add to list')}
           </button>
         </div>
       </div>

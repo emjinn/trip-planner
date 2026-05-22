@@ -70,6 +70,7 @@ interface Props {
   item: Item
   onToggleDone: (id: string, done: boolean) => void
   onDelete: (id: string) => void
+  onEdit: (item: Item) => void
 }
 
 function TrashIcon() {
@@ -80,7 +81,7 @@ function TrashIcon() {
   )
 }
 
-export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
+export default function ItemCard({ item, onToggleDone, onDelete, onEdit }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
 
   const [dragX, setDragX] = useState(0)
@@ -189,7 +190,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          onClick={() => { if (snapX !== 0) setSnapX(0) }}
+          onClick={() => { if (snapX !== 0) { setSnapX(0); return } onEdit(item) }}
         >
           <div className="flex items-start gap-3">
             <div className={`${config.bg} rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0 text-lg`}>

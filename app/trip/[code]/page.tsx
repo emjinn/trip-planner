@@ -35,6 +35,7 @@ export default function TripPage() {
   const [items, setItems] = useState<Item[]>([])
   const [filter, setFilter] = useState<Filter>('all')
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<Item | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -91,6 +92,28 @@ export default function TripPage() {
 
     return () => { supabase.removeChannel(channel) }
   }, [trip])
+
+  function handleOpenEdit(item: Item) {
+    setEditingItem(item)
+    setSheetOpen(true)
+  }
+
+  function handleCloseSheet() {
+    setSheetOpen(false)
+    setEditingItem(null)
+  }
+
+  async function handleSaveItem(id: string, updates: { type: ItemType; name: string; notes: string; links: string[]; added_by: string }) {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, ...updates, notes: updates.notes || null } : i))
+    const { error } = await supabase.from('items').update({
+      type: updates.type,
+      name: updates.name,
+      notes: updates.notes || null,
+      links: updates.links,
+      added_by: updates.added_by,
+    }).eq('id', id)
+    if (error) throw error
+  }
 
   async function handleAddItem(item: { type: ItemType; name: string; notes: string; links: string[]; added_by: string }) {
     if (!trip) return
@@ -227,6 +250,7 @@ export default function TripPage() {
                   item={item}
                   onToggleDone={handleToggleDone}
                   onDelete={handleDelete}
+                  onEdit={handleOpenEdit}
                 />
               ))}
             </SortableContext>
@@ -236,7 +260,7 @@ export default function TripPage() {
 
       {/* FAB */}
       <button
-        onClick={() => setSheetOpen(true)}
+        onClick={() => { setEditingItem(null); setSheetOpen(true) }}
         className="fixed bottom-6 right-5 z-40 w-14 h-14 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white rounded-full shadow-lg shadow-orange-200 flex items-center justify-center text-2xl font-light transition-colors"
         aria-label="Add item"
       >
@@ -245,8 +269,10 @@ export default function TripPage() {
 
       <AddItemSheet
         isOpen={sheetOpen}
-        onClose={() => setSheetOpen(false)}
+        onClose={handleCloseSheet}
         onAdd={handleAddItem}
+        editItem={editingItem ?? undefined}
+        onSave={handleSaveItem}
       />
     </div>
   )

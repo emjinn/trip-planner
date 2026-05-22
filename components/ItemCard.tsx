@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Item, ItemType } from '@/types'
 
 const TYPE_CONFIG: Record<ItemType, { emoji: string; bg: string }> = {
@@ -35,7 +35,6 @@ function TrashIcon() {
 }
 
 export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
-  const [expanded, setExpanded] = useState(false)
   const [dragX, setDragX] = useState(0)
   const [snapX, setSnapX] = useState(0)
 
@@ -131,10 +130,7 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onClick={() => {
-          if (snapX !== 0) { setSnapX(0); return }
-          setExpanded(s => !s)
-        }}
+        onClick={() => { if (snapX !== 0) setSnapX(0) }}
       >
         <div className="flex items-start gap-3">
           <div className={`${config.bg} rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0 text-lg`}>
@@ -180,19 +176,6 @@ export default function ItemCard({ item, onToggleDone, onDelete }: Props) {
           </button>
         </div>
 
-        {expanded && snapX === 0 && (
-          <div className="mt-3 pt-3 border-t border-stone-100 flex justify-end">
-            <button
-              onClick={e => { e.stopPropagation(); onDelete(item.id) }}
-              className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Remove
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

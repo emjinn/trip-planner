@@ -114,7 +114,8 @@ export default function TripPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const filteredItems = filter === 'all' ? items : items.filter(i => i.type === filter)
+  const filteredItems = (filter === 'all' ? items : items.filter(i => i.type === filter))
+    .sort((a, b) => Number(a.done) - Number(b.done))
   const doneCount = items.filter(i => i.done).length
   const allDone = items.length > 0 && doneCount === items.length
 

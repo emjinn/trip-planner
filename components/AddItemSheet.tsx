@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ItemType } from '@/types'
 
 const TYPE_OPTIONS: { type: ItemType; emoji: string; label: string }[] = [
@@ -25,6 +25,9 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
   const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [dragY, setDragY] = useState(0)
+  const dragStartY = useRef<number | null>(null)
+  const dragging = useRef(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(USER_NAME_KEY)
@@ -33,8 +36,30 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
+    if (!isOpen) setDragY(0)
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
+
+  function handleTouchStart(e: React.TouchEvent) {
+    dragStartY.current = e.touches[0].clientY
+    dragging.current = true
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    if (!dragging.current || dragStartY.current === null) return
+    const delta = e.touches[0].clientY - dragStartY.current
+    if (delta > 0) setDragY(delta)
+  }
+
+  function handleTouchEnd() {
+    if (dragY > 100) {
+      onClose()
+      reset()
+    }
+    setDragY(0)
+    dragging.current = false
+    dragStartY.current = null
+  }
 
   function reset() {
     setType('food')
@@ -68,10 +93,20 @@ export default function AddItemSheet({ isOpen, onClose, onAdd }: Props) {
       )}
 
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
-        style={{ maxHeight: '92dvh', overflowY: 'auto' }}
+        className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl"
+        style={{
+          maxHeight: '92dvh',
+          overflowY: 'auto',
+          transform: isOpen ? `translateY(${dragY}px)` : 'translateY(100%)',
+          transition: dragging.current && dragY > 0 ? 'none' : 'transform 300ms ease-out',
+        }}
       >
-        <div className="flex justify-center pt-3 pb-1">
+        <div
+          className="flex justify-center pt-3 pb-1 touch-none cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="w-10 h-1 bg-stone-200 rounded-full" />
         </div>
 

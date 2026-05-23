@@ -216,6 +216,7 @@ export default function BoardPage() {
       itemsByColumn['unplanned'].push(item)
     }
   })
+  columns.forEach(c => { itemsByColumn[c.id].sort((a, b) => a.sort_order - b.sort_order) })
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">

@@ -137,17 +137,16 @@ export default function TripPage() {
     await supabase.from('items').update({ done }).eq('id', id)
   }
 
-  function handleDragEnd({ active, over }: DragEndEvent) {
+  async function handleDragEnd({ active, over }: DragEndEvent) {
     if (!over || active.id === over.id) return
-    setItems(prev => {
-      const displayed = sortItems(filter === 'all' ? prev : prev.filter(i => i.type === filter))
-      const oldIndex = displayed.findIndex(i => i.id === active.id)
-      const newIndex = displayed.findIndex(i => i.id === over.id)
-      if (oldIndex === -1 || newIndex === -1) return prev
-      const reordered = arrayMove(displayed, oldIndex, newIndex)
-      const displayedIds = new Set(displayed.map(i => i.id))
-      return [...reordered, ...prev.filter(i => !displayedIds.has(i.id))]
-    })
+    const displayed = sortItems(filter === 'all' ? items : items.filter(i => i.type === filter))
+    const oldIndex = displayed.findIndex(i => i.id === active.id)
+    const newIndex = displayed.findIndex(i => i.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+    const reordered = arrayMove(displayed, oldIndex, newIndex).map((item, index) => ({ ...item, sort_order: index }))
+    const orderMap = new Map(reordered.map(i => [i.id, i]))
+    setItems(prev => prev.map(item => orderMap.has(item.id) ? orderMap.get(item.id)! : item))
+    await Promise.all(reordered.map(item => supabase.from('items').update({ sort_order: item.sort_order }).eq('id', item.id)))
   }
 
   async function handleDelete(id: string) {

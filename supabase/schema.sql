@@ -3,7 +3,9 @@ create table trips (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   code text not null unique,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  start_date date,
+  end_date date
 );
 
 -- Items table
@@ -16,7 +18,8 @@ create table items (
   links text[] not null default '{}',
   added_by text not null,
   done boolean not null default false,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  scheduled_date date
 );
 
 create index trips_code_idx on trips(code);

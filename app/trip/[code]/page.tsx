@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { DndContext, closestCenter, TouchSensor, MouseSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { supabase } from '@/lib/supabase'
@@ -203,12 +204,25 @@ export default function TripPage() {
                 : `${doneCount} / ${items.length} done${allDone ? ' 🎉' : ''}`}
             </p>
           </div>
-          <button
-            onClick={copyCode}
-            className="ml-3 bg-stone-100 hover:bg-stone-200 active:bg-stone-300 px-3 py-1.5 rounded-lg font-mono text-sm text-stone-700 font-semibold tracking-widest transition-colors min-w-[90px] text-center"
-          >
-            {copied ? '✓ Copied' : code}
-          </button>
+          <div className="flex items-center gap-2 ml-3">
+            {trip?.start_date && (
+              <Link
+                href={`/trip/${code}/board`}
+                className="bg-stone-100 hover:bg-stone-200 active:bg-stone-300 p-2 rounded-lg transition-colors"
+                aria-label="Board view"
+              >
+                <svg className="w-5 h-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+              </Link>
+            )}
+            <button
+              onClick={copyCode}
+              className="bg-stone-100 hover:bg-stone-200 active:bg-stone-300 px-3 py-1.5 rounded-lg font-mono text-sm text-stone-700 font-semibold tracking-widest transition-colors min-w-[90px] text-center"
+            >
+              {copied ? '✓ Copied' : code}
+            </button>
+          </div>
         </div>
 
         {/* Filter tabs */}

@@ -17,16 +17,27 @@ export default function Home() {
   const router = useRouter()
   const [view, setView] = useState<View>('home')
   const [tripName, setTripName] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [joinCode, setJoinCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   async function handleCreate() {
     if (!tripName.trim()) return
+    if (startDate && endDate && endDate < startDate) {
+      setError('End date must be on or after start date.')
+      return
+    }
     setLoading(true)
     setError('')
     const code = generateCode()
-    const { error: err } = await supabase.from('trips').insert({ name: tripName.trim(), code })
+    const { error: err } = await supabase.from('trips').insert({
+      name: tripName.trim(),
+      code,
+      start_date: startDate || null,
+      end_date: endDate || null,
+    })
     if (err) {
       setError('Something went wrong. Try again.')
       setLoading(false)
@@ -53,6 +64,8 @@ export default function Home() {
     setView('home')
     setError('')
     setTripName('')
+    setStartDate('')
+    setEndDate('')
     setJoinCode('')
   }
 
@@ -96,6 +109,27 @@ export default function Home() {
                 autoFocus
                 className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
               />
+            </div>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">Start date</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                  className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">End date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  min={startDate || undefined}
+                  onChange={e => setEndDate(e.target.value)}
+                  className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
+                />
+              </div>
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button

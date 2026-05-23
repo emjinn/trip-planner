@@ -5,6 +5,8 @@ export interface Trip {
   name: string
   code: string
   created_at: string
+  start_date: string | null
+  end_date: string | null
 }
 
 export interface Item {
@@ -17,4 +19,5 @@ export interface Item {
   added_by: string
   done: boolean
   created_at: string
+  scheduled_date: string | null
 }

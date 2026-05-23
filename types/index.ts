@@ -20,4 +20,5 @@ export interface Item {
   done: boolean
   created_at: string
   scheduled_date: string | null
+  sort_order: number
 }

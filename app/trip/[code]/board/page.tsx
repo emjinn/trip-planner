@@ -84,7 +84,8 @@ export default function BoardPage() {
         .from('items')
         .select('*')
         .eq('trip_id', tripData.id)
-        .order('created_at', { ascending: false })
+        .order('scheduled_date', { ascending: true, nullsFirst: false })
+        .order('sort_order', { ascending: true })
 
       setItems(itemsData ?? [])
       setLoading(false)
@@ -115,8 +116,10 @@ export default function BoardPage() {
   }, [trip])
 
   async function updateScheduledDate(id: string, date: string | null) {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, scheduled_date: date } : i))
-    await supabase.from('items').update({ scheduled_date: date }).eq('id', id)
+    const destColId = date ?? 'unplanned'
+    const newSortOrder = items.filter(i => (i.scheduled_date ?? 'unplanned') === destColId && i.id !== id).length
+    setItems(prev => prev.map(i => i.id === id ? { ...i, scheduled_date: date, sort_order: newSortOrder } : i))
+    await supabase.from('items').update({ scheduled_date: date, sort_order: newSortOrder }).eq('id', id)
   }
 
   async function handleToggleDone(id: string, done: boolean) {
@@ -129,7 +132,7 @@ export default function BoardPage() {
     if (item) setActiveItem(item)
   }
 
-  function handleDragEnd({ active, over }: DragEndEvent) {
+  async function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveItem(null)
     if (!over) return
 
@@ -149,16 +152,14 @@ export default function BoardPage() {
 
     if (activeColId === overColId && !columnIds.has(overId)) {
       // Within-column reorder
-      setItems(prev => {
-        const colItems = prev.filter(i => (i.scheduled_date ?? 'unplanned') === activeColId)
-        const oldIndex = colItems.findIndex(i => i.id === activeId)
-        const newIndex = colItems.findIndex(i => i.id === overId)
-        if (oldIndex === -1 || newIndex === -1) return prev
-        const reordered = arrayMove(colItems, oldIndex, newIndex)
-        const colSet = new Set(colItems.map(i => i.id))
-        let cursor = 0
-        return prev.map(item => colSet.has(item.id) ? reordered[cursor++] : item)
-      })
+      const colItems = items.filter(i => (i.scheduled_date ?? 'unplanned') === activeColId)
+      const oldIndex = colItems.findIndex(i => i.id === activeId)
+      const newIndex = colItems.findIndex(i => i.id === overId)
+      if (oldIndex === -1 || newIndex === -1) return
+      const reordered = arrayMove(colItems, oldIndex, newIndex).map((item, index) => ({ ...item, sort_order: index }))
+      const orderMap = new Map(reordered.map(i => [i.id, i]))
+      setItems(prev => prev.map(item => orderMap.has(item.id) ? orderMap.get(item.id)! : item))
+      await Promise.all(reordered.map(item => supabase.from('items').update({ sort_order: item.sort_order }).eq('id', item.id)))
     } else {
       // Cross-column move
       updateScheduledDate(activeId, overColId === 'unplanned' ? null : overColId)

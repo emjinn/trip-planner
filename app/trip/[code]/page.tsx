@@ -63,7 +63,8 @@ export default function TripPage() {
         .select('*')
         .eq('trip_id', tripData.id)
         .order('done', { ascending: true })
-        .order('created_at', { ascending: false })
+        .order('scheduled_date', { ascending: true, nullsFirst: false })
+        .order('sort_order', { ascending: true })
 
       setItems(itemsData ?? [])
       setLoading(false)
@@ -163,10 +164,13 @@ export default function TripPage() {
   function sortItems(list: Item[]): Item[] {
     return [...list].sort((a, b) => {
       if (a.done !== b.done) return a.done ? 1 : -1
-      if (a.scheduled_date && b.scheduled_date) return a.scheduled_date.localeCompare(b.scheduled_date)
+      if (a.scheduled_date && b.scheduled_date) {
+        if (a.scheduled_date !== b.scheduled_date) return a.scheduled_date.localeCompare(b.scheduled_date)
+        return a.sort_order - b.sort_order
+      }
       if (a.scheduled_date) return -1
       if (b.scheduled_date) return 1
-      return 0
+      return a.sort_order - b.sort_order
     })
   }
 

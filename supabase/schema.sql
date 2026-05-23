@@ -19,7 +19,8 @@ create table items (
   added_by text not null,
   done boolean not null default false,
   created_at timestamptz not null default now(),
-  scheduled_date date
+  scheduled_date date,
+  sort_order integer not null default 0
 );
 
 create index trips_code_idx on trips(code);

@@ -1,6 +1,7 @@
 'use client'
 
 import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Item } from '@/types'
 import BoardCard from './BoardCard'
 
@@ -26,26 +27,28 @@ export default function DayColumn({ columnId, label, sublabel, items, onToggleDo
       </div>
 
       {/* Drop zone */}
-      <div
-        ref={setNodeRef}
-        className={`flex-1 min-h-[200px] rounded-2xl p-2 space-y-2 transition-colors ${
-          isOver ? 'bg-orange-50 ring-2 ring-orange-300' : 'bg-stone-100/60'
-        }`}
-      >
-        {items.map(item => (
-          <BoardCard
-            key={item.id}
-            item={item}
-            onToggleDone={onToggleDone}
-            onTap={() => onCardTap(item)}
-          />
-        ))}
-        {items.length === 0 && (
-          <div className="flex items-center justify-center h-20">
-            <p className="text-stone-400 text-sm">Drop here</p>
-          </div>
-        )}
-      </div>
+      <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+        <div
+          ref={setNodeRef}
+          className={`flex-1 min-h-[200px] rounded-2xl p-2 space-y-2 transition-colors ${
+            isOver ? 'bg-orange-50 ring-2 ring-orange-300' : 'bg-stone-100/60'
+          }`}
+        >
+          {items.map(item => (
+            <BoardCard
+              key={item.id}
+              item={item}
+              onToggleDone={onToggleDone}
+              onTap={() => onCardTap(item)}
+            />
+          ))}
+          {items.length === 0 && (
+            <div className="flex items-center justify-center h-20">
+              <p className="text-stone-400 text-sm">Drop here</p>
+            </div>
+          )}
+        </div>
+      </SortableContext>
     </div>
   )
 }

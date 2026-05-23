@@ -1,6 +1,6 @@
 'use client'
 
-import { useDraggable } from '@dnd-kit/core'
+import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Item, ItemType } from '@/types'
 
@@ -71,22 +71,25 @@ interface Props {
 }
 
 export default function BoardCard({ item, onToggleDone, onTap, isOverlay }: Props) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: item.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
 
   const config = TYPE_CONFIG[item.type]
 
   const style = isOverlay
-    ? { transform: transform ? CSS.Translate.toString(transform) : undefined, opacity: 0.95 }
-    : { transform: transform ? CSS.Translate.toString(transform) : undefined }
+    ? { opacity: 0.95 }
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }
 
   return (
     <div
-      ref={setNodeRef}
+      ref={isOverlay ? undefined : setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...(isOverlay ? {} : attributes)}
+      {...(isOverlay ? {} : listeners)}
       className={`bg-white rounded-2xl p-3 border border-stone-100 shadow-sm cursor-pointer select-none touch-manipulation ${
-        isDragging ? 'opacity-0' : ''
+        isDragging && !isOverlay ? 'opacity-0' : ''
       } ${isOverlay ? 'shadow-xl rotate-1' : ''}`}
       onClick={onTap}
     >

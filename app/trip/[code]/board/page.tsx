@@ -14,6 +14,7 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
 import { supabase } from '@/lib/supabase'
 import { Trip, Item, ItemType } from '@/types'
 import DayColumn from '@/components/DayColumn'
@@ -131,10 +132,36 @@ export default function BoardPage() {
   function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveItem(null)
     if (!over) return
+
+    const activeId = active.id as string
     const overId = over.id as string
-    const columnId = overId === 'unplanned' ? null : overId
-    if (active.id !== overId) {
-      updateScheduledDate(active.id as string, columnId)
+    if (activeId === overId) return
+
+    const columnIds = new Set(columns.map(c => c.id))
+
+    const activeItem = items.find(i => i.id === activeId)
+    if (!activeItem) return
+    const activeColId = activeItem.scheduled_date ?? 'unplanned'
+
+    const overColId = columnIds.has(overId)
+      ? overId
+      : (items.find(i => i.id === overId)?.scheduled_date ?? 'unplanned')
+
+    if (activeColId === overColId && !columnIds.has(overId)) {
+      // Within-column reorder
+      setItems(prev => {
+        const colItems = prev.filter(i => (i.scheduled_date ?? 'unplanned') === activeColId)
+        const oldIndex = colItems.findIndex(i => i.id === activeId)
+        const newIndex = colItems.findIndex(i => i.id === overId)
+        if (oldIndex === -1 || newIndex === -1) return prev
+        const reordered = arrayMove(colItems, oldIndex, newIndex)
+        const colSet = new Set(colItems.map(i => i.id))
+        let cursor = 0
+        return prev.map(item => colSet.has(item.id) ? reordered[cursor++] : item)
+      })
+    } else {
+      // Cross-column move
+      updateScheduledDate(activeId, overColId === 'unplanned' ? null : overColId)
     }
   }
 

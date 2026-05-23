@@ -132,26 +132,20 @@ export default function TripPage() {
   }
 
   async function handleToggleDone(id: string, done: boolean) {
-    setItems(prev => {
-      const item = { ...prev.find(i => i.id === id)!, done }
-      const without = prev.filter(i => i.id !== id)
-      if (done) {
-        return [...without, item]
-      }
-      const firstDoneIdx = without.findIndex(i => i.done)
-      return firstDoneIdx === -1
-        ? [...without, item]
-        : [...without.slice(0, firstDoneIdx), item, ...without.slice(firstDoneIdx)]
-    })
+    setItems(prev => prev.map(i => i.id === id ? { ...i, done } : i))
     await supabase.from('items').update({ done }).eq('id', id)
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
     if (!over || active.id === over.id) return
     setItems(prev => {
-      const oldIndex = prev.findIndex(i => i.id === active.id)
-      const newIndex = prev.findIndex(i => i.id === over.id)
-      return arrayMove(prev, oldIndex, newIndex)
+      const displayed = sortItems(filter === 'all' ? prev : prev.filter(i => i.type === filter))
+      const oldIndex = displayed.findIndex(i => i.id === active.id)
+      const newIndex = displayed.findIndex(i => i.id === over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+      const reordered = arrayMove(displayed, oldIndex, newIndex)
+      const displayedIds = new Set(displayed.map(i => i.id))
+      return [...reordered, ...prev.filter(i => !displayedIds.has(i.id))]
     })
   }
 
@@ -166,7 +160,17 @@ export default function TripPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const filteredItems = filter === 'all' ? items : items.filter(i => i.type === filter)
+  function sortItems(list: Item[]): Item[] {
+    return [...list].sort((a, b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1
+      if (a.scheduled_date && b.scheduled_date) return a.scheduled_date.localeCompare(b.scheduled_date)
+      if (a.scheduled_date) return -1
+      if (b.scheduled_date) return 1
+      return 0
+    })
+  }
+
+  const filteredItems = sortItems(filter === 'all' ? items : items.filter(i => i.type === filter))
   const doneCount = items.filter(i => i.done).length
   const allDone = items.length > 0 && doneCount === items.length
 

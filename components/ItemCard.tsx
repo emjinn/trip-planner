@@ -63,6 +63,11 @@ function getPlatform(url: string): PlatformInfo {
   }
 }
 
+function formatScheduledDate(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 const HALF = 80
 const FULL = 220
 
@@ -204,8 +209,13 @@ export default function ItemCard({ item, onToggleDone, onDelete, onEdit }: Props
               {item.notes && (
                 <p className="text-stone-500 text-sm mt-0.5 leading-snug line-clamp-2">{item.notes}</p>
               )}
-              {(item.links?.length > 0 || item.added_by) && (
+              {(item.links?.length > 0 || item.added_by || item.scheduled_date) && (
                 <div className="flex items-start gap-1.5 mt-1.5 flex-wrap">
+                  {item.scheduled_date && (
+                    <span className="text-xs bg-orange-50 text-orange-500 px-2 py-0.5 rounded-full font-medium">
+                      {formatScheduledDate(item.scheduled_date)}
+                    </span>
+                  )}
                   <span className="text-stone-400 text-xs">{item.added_by}</span>
                   {item.links?.map((link, i) => {
                     const platform = getPlatform(link)

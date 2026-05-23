@@ -116,7 +116,7 @@ export default function Home() {
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
+                className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base appearance-none"
               />
             </div>
             <div>
@@ -126,7 +126,7 @@ export default function Home() {
                 value={endDate}
                 min={startDate || undefined}
                 onChange={e => setEndDate(e.target.value)}
-                className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base"
+                className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:ring-2 focus:ring-orange-500 text-base appearance-none"
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
